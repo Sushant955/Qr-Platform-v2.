@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ScanLine, Eye, EyeOff, ArrowRight } from 'lucide-react';
@@ -29,76 +30,79 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen relative overflow-hidden bg-[#050816] text-white flex items-center justify-center px-4"
+      className="min-h-screen relative overflow-hidden text-white flex items-center justify-center px-4 py-8"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(5,8,22,0.65), rgba(5,8,22,0.85)), url('/auth-bg.png')",
+          "linear-gradient(rgba(3,10,25,0.15), rgba(3,10,25,0.15)), url('/auth-bg.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* Grid */}
+      {/* Background grid */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(0,220,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,220,255,0.04) 1px, transparent 1px)',
+            'linear-gradient(rgba(0,220,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,220,255,0.07) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
         }}
       />
 
-      {/* Glow */}
-      <div className="absolute w-80 h-80 bg-cyan-500/10 blur-[120px] rounded-full top-0 left-0" />
-      <div className="absolute w-80 h-80 bg-purple-500/10 blur-[120px] rounded-full bottom-0 right-0" />
+      {/* Glow effects */}
+      <div className="absolute w-96 h-96 bg-cyan-400/20 blur-[120px] rounded-full top-0 left-0 pointer-events-none" />
+      <div className="absolute w-96 h-96 bg-blue-500/20 blur-[120px] rounded-full bottom-0 right-0 pointer-events-none" />
 
       {/* Login */}
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md z-10">
 
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center shadow-lg shadow-cyan-500/10">
-            <ScanLine size={26} className="text-cyan-400" />
+          <div className="w-14 h-14 rounded-2xl bg-cyan-300/20 border border-cyan-200/50 flex items-center justify-center shadow-lg shadow-cyan-400/30 backdrop-blur-md">
+            <ScanLine size={28} className="text-cyan-300" />
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold tracking-wide">
-              UNIFIED <span className="text-cyan-400">QR</span>
+            <h1 className="text-3xl font-extrabold tracking-wide drop-shadow-lg">
+              UNIFIED <span className="text-cyan-300">QR</span>
             </h1>
-            <p className="text-[10px] tracking-[4px] text-gray-400">
+            <p className="text-[10px] tracking-[4px] text-cyan-100/80">
               DIGITAL INTELLIGENCE
             </p>
           </div>
         </div>
 
-        {/* Card */}
-        <div className="bg-[#080e1b]/75 backdrop-blur-2xl border border-cyan-400/20 rounded-3xl p-8 shadow-2xl shadow-cyan-950/40">
+        {/* Glass Card */}
+        <div className="bg-[#0b1630]/80 backdrop-blur-2xl border border-cyan-300/30 rounded-3xl p-8 shadow-2xl shadow-cyan-500/20">
 
+          {/* Heading */}
           <div className="mb-7">
-            <p className="text-cyan-400 text-xs tracking-[3px] mb-3">
+            <p className="text-cyan-300 text-xs tracking-[3px] mb-3 font-semibold">
               AUTHENTICATION
             </p>
 
-            <h2 className="text-3xl font-bold mb-2">
+            <h2 className="text-3xl font-bold mb-2 drop-shadow-md">
               Welcome back
             </h2>
 
-            <p className="text-gray-400 text-sm">
+            <p className="text-blue-100/80 text-sm">
               Sign in to access your QR workspace.
             </p>
           </div>
 
+          {/* Error */}
           {error && (
-            <div className="mb-5 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+            <div className="mb-5 text-sm text-red-300 bg-red-500/15 border border-red-400/30 rounded-xl px-4 py-3">
               {error}
             </div>
           )}
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
 
             {/* Email */}
             <div>
-              <label className="block text-xs text-gray-400 mb-2">
+              <label className="block text-xs text-blue-100/80 mb-2 font-medium">
                 EMAIL ADDRESS
               </label>
 
@@ -109,14 +113,14 @@ export default function Login() {
                 onChange={(e) =>
                   setForm({ ...form, email: e.target.value })
                 }
-                className="w-full bg-[#0b1020]/90 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 transition-all"
+                className="w-full bg-white/10 border border-cyan-200/20 rounded-xl px-4 py-3 text-white placeholder:text-blue-100/50 outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20 transition-all"
                 placeholder="you@example.com"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-xs text-gray-400 mb-2">
+              <label className="block text-xs text-blue-100/80 mb-2 font-medium">
                 PASSWORD
               </label>
 
@@ -128,14 +132,14 @@ export default function Login() {
                   onChange={(e) =>
                     setForm({ ...form, password: e.target.value })
                   }
-                  className="w-full bg-[#0b1020]/90 border border-white/10 rounded-xl px-4 py-3 pr-12 text-white outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 transition-all"
+                  className="w-full bg-white/10 border border-cyan-200/20 rounded-xl px-4 py-3 pr-12 text-white placeholder:text-blue-100/50 outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20 transition-all"
                   placeholder="Enter your password"
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-cyan-400"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-100/70 hover:text-cyan-300 transition-colors"
                   aria-label="Toggle password visibility"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -147,7 +151,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-400 to-blue-500 text-[#050816] font-bold rounded-xl py-3.5 hover:shadow-lg hover:shadow-cyan-500/20 hover:scale-[1.01] transition-all disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 text-[#050816] font-bold rounded-xl py-3.5 shadow-lg shadow-cyan-400/30 hover:shadow-xl hover:shadow-cyan-400/50 hover:scale-[1.02] transition-all disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign in to workspace'}
               {!loading && <ArrowRight size={18} />}
@@ -155,17 +159,19 @@ export default function Login() {
 
           </form>
 
+          {/* Divider */}
           <div className="flex items-center gap-3 my-6">
-            <div className="h-px flex-1 bg-white/10" />
-            <span className="text-gray-400 text-xs">SECURE ACCESS</span>
-            <div className="h-px flex-1 bg-white/10" />
+            <div className="h-px flex-1 bg-cyan-200/20" />
+            <span className="text-blue-100/60 text-xs">SECURE ACCESS</span>
+            <div className="h-px flex-1 bg-cyan-200/20" />
           </div>
 
-          <p className="text-center text-sm text-gray-400">
+          {/* Register link */}
+          <p className="text-center text-sm text-blue-100/80">
             New to Unified QR?{' '}
             <Link
               to="/register"
-              className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors"
+              className="text-cyan-300 font-semibold hover:text-white transition-colors"
             >
               Create account
             </Link>
@@ -174,8 +180,8 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-center gap-2 mt-6 text-xs text-gray-400">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+        <div className="flex items-center justify-center gap-2 mt-6 text-xs text-cyan-100/80">
+          <span className="w-2 h-2 rounded-full bg-cyan-300 animate-pulse shadow-md shadow-cyan-300/50" />
           SYSTEM ONLINE
           <span className="mx-2">|</span>
           UNIFIED QR PLATFORM
