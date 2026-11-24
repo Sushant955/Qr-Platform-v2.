@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -7,8 +6,7 @@ import {
 } from 'recharts';
 import {
   ChevronLeft, Download, Copy, Check, Zap,
-  Trash2, Circle, Activity, ShieldCheck,
-  QrCode, Sparkles
+  Trash2, Circle, Activity, Shield, ExternalLink
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import DynamicIcon from '../components/DynamicIcon';
@@ -24,8 +22,6 @@ export default function QrDetail() {
   const [imgUrl, setImgUrl] = useState(null);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     let objectUrl;
@@ -33,7 +29,6 @@ export default function QrDetail() {
     async function load() {
       try {
         setLoading(true);
-        setError('');
 
         const { data } = await client.get(`/qr/${id}`);
         setQr(data.qr);
@@ -49,9 +44,8 @@ export default function QrDetail() {
           const { data: a } = await client.get(`/qr/${id}/analytics`);
           setAnalytics(a);
         }
-      } catch (err) {
-        console.error(err);
-        setError('Unable to load QR details. Please refresh the page.');
+      } catch (error) {
+        console.error('Failed to load QR details:', error);
       } finally {
         setLoading(false);
       }
@@ -74,13 +68,10 @@ export default function QrDetail() {
       const a = document.createElement('a');
       a.href = url;
       a.download = `${qr.title}.${format}`;
-      document.body.appendChild(a);
       a.click();
-      a.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err);
-      alert('Download failed. Please try again.');
+    } catch (error) {
+      alert('Download failed');
     }
   }
 
@@ -88,29 +79,21 @@ export default function QrDetail() {
     if (!confirm(`Delete "${qr.title}"? This can't be undone.`)) return;
 
     try {
-      setActionLoading(true);
       await client.delete(`/qr/${id}`);
       navigate('/');
-    } catch (err) {
-      console.error(err);
-      alert('Unable to delete QR code.');
-    } finally {
-      setActionLoading(false);
+    } catch (error) {
+      alert('Failed to delete QR code');
     }
   }
 
   async function toggleActive() {
     try {
-      setActionLoading(true);
       const { data } = await client.put(`/qr/${id}`, {
         is_active: !qr.is_active
       });
       setQr(data.qr);
-    } catch (err) {
-      console.error(err);
-      alert('Unable to change QR status.');
-    } finally {
-      setActionLoading(false);
+    } catch (error) {
+      alert('Failed to update QR status');
     }
   }
 
@@ -121,8 +104,8 @@ export default function QrDetail() {
       );
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    } catch {
-      alert('Unable to copy link.');
+    } catch (error) {
+      alert('Unable to copy link');
     }
   }
 
@@ -132,7 +115,7 @@ export default function QrDetail() {
         <div className="min-h-[70vh] flex items-center justify-center">
           <div className="text-center">
             <div className="w-12 h-12 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-cyan-300 text-sm font-mono animate-pulse">
+            <p className="text-cyan-400 font-mono text-sm tracking-widest">
               LOADING QR INTELLIGENCE...
             </p>
           </div>
@@ -141,13 +124,13 @@ export default function QrDetail() {
     );
   }
 
-  if (error || !qr) {
+  if (!qr) {
     return (
       <Layout>
-        <div className="max-w-4xl mx-auto px-6 py-20 text-center">
-          <p className="text-red-400 mb-4">{error || 'QR not found.'}</p>
-          <Link to="/" className="text-cyan-400 hover:text-white">
-            Return to Dashboard
+        <div className="max-w-4xl mx-auto p-10 text-center">
+          <h1 className="text-xl font-bold text-white">QR code not found</h1>
+          <Link to="/" className="text-cyan-400 mt-4 inline-block">
+            Back to Dashboard
           </Link>
         </div>
       </Layout>
@@ -158,189 +141,187 @@ export default function QrDetail() {
 
   return (
     <Layout>
-      <div className="min-h-screen relative overflow-hidden bg-[#050816]">
-        {/* Background effects */}
-        <div className="fixed inset-0 pointer-events-none">
-          <div className="absolute top-[-150px] left-[-100px] w-[400px] h-[400px] bg-cyan-500/10 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[-150px] right-[-100px] w-[400px] h-[400px] bg-purple-500/10 blur-[120px] rounded-full" />
+      <div className="min-h-screen relative overflow-hidden bg-[#070b14] text-white">
+
+        {/* Background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/3 w-96 h-96 bg-cyan-500/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 blur-[120px] rounded-full" />
           <div
             className="absolute inset-0 opacity-[0.04]"
             style={{
               backgroundImage:
-                'linear-gradient(rgba(0,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.5) 1px, transparent 1px)',
+                'linear-gradient(#00e5ff 1px,transparent 1px),linear-gradient(90deg,#00e5ff 1px,transparent 1px)',
               backgroundSize: '40px 40px'
             }}
           />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-8">
 
-          {/* Back button */}
+          {/* Back */}
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-slate-400 hover:text-cyan-300 transition-all text-sm mb-8"
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-cyan-300 transition mb-8"
           >
-            <ChevronLeft size={16} />
-            Back to Dashboard
+            <ChevronLeft size={17} />
+            Dashboard
           </Link>
 
           {/* Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-10">
             <div>
-              <div className="flex flex-wrap items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-3 rounded-xl bg-cyan-400/10 border border-cyan-400/20">
                   <DynamicIcon
                     name={typeDef.icon}
                     size={22}
-                    className="text-cyan-300"
+                    className="text-cyan-400"
                   />
                 </div>
 
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                  <p className="text-xs font-mono text-cyan-400 tracking-[0.2em] uppercase">
+                    QR Intelligence
+                  </p>
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
                     {qr.title}
                   </h1>
-                  <p className="text-slate-400 text-sm mt-1">
-                    {typeDef.label} · {new Date(qr.created_at).toLocaleDateString()}
-                  </p>
                 </div>
               </div>
+
+              <p className="text-slate-400 text-sm">
+                {typeDef.label} · Created{' '}
+                {new Date(qr.created_at).toLocaleDateString()}
+              </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-cyan-400/20 bg-cyan-400/5">
-                <Activity size={14} className="text-cyan-300" />
-                <span className="text-xs font-mono text-cyan-200">
+            <div className="flex items-center gap-3">
+              <div className="px-4 py-2 rounded-full border border-cyan-400/20 bg-cyan-400/5 flex items-center gap-2">
+                <Activity size={14} className="text-cyan-400" />
+                <span className="text-xs font-mono text-cyan-300">
                   SYSTEM ONLINE
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-purple-400/20 bg-purple-400/5">
-                <ShieldCheck size={14} className="text-purple-300" />
-                <span className="text-xs font-mono text-purple-200">
-                  QR SECURED
-                </span>
-              </div>
+              {qr.mode === 'dynamic' && (
+                <div
+                  className={`px-4 py-2 rounded-full border text-xs font-mono ${
+                    qr.is_active
+                      ? 'border-emerald-400/20 bg-emerald-400/5 text-emerald-400'
+                      : 'border-red-400/20 bg-red-400/5 text-red-400'
+                  }`}
+                >
+                  {qr.is_active ? 'ACTIVE' : 'DISABLED'}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Main layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8">
 
-            {/* Left panel */}
-            <div className="space-y-5">
+            {/* Left */}
+            <div className="space-y-6">
 
-              {/* QR image */}
-              <div className="relative bg-white rounded-3xl p-7 shadow-[0_0_50px_rgba(0,255,255,0.08)]">
-                <div className="absolute -top-3 -right-3">
-                  <div className="w-10 h-10 bg-cyan-400 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-400/30">
-                    <QrCode size={20} className="text-black" />
-                  </div>
+              {/* QR Preview */}
+              <div className="relative rounded-3xl border border-cyan-400/20 bg-white p-6 shadow-[0_0_50px_rgba(0,229,255,0.08)]">
+                <div className="absolute -top-3 left-6 px-3 py-1 bg-[#070b14] border border-cyan-400/20 rounded-full text-[10px] font-mono text-cyan-400 tracking-widest">
+                  QR PREVIEW
                 </div>
 
-                {imgUrl && (
-                  <img
-                    src={imgUrl}
-                    alt={qr.title}
-                    className="w-full max-w-[260px] mx-auto"
-                  />
-                )}
-
-                <div className="text-center mt-4">
-                  <p className="text-gray-500 text-xs font-mono">
-                    QR MATRIX
-                  </p>
+                <div className="flex items-center justify-center min-h-[300px]">
+                  {imgUrl && (
+                    <img
+                      src={imgUrl}
+                      alt={qr.title}
+                      className="w-full max-w-[280px] object-contain"
+                    />
+                  )}
                 </div>
               </div>
 
-              {/* Download card */}
-              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5">
-                <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-                  <Download size={16} className="text-cyan-300" />
-                  Export QR Code
+              {/* Download */}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-5">
+                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                  <Download size={16} className="text-cyan-400" />
+                  Export QR
                 </h3>
 
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => handleDownload('png')}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-cyan-400/10 border border-cyan-400/20 text-cyan-200 hover:bg-cyan-400/20 hover:border-cyan-400/50 transition-all text-sm font-medium"
+                    className="flex items-center justify-center gap-2 py-3 rounded-xl border border-cyan-400/20 bg-cyan-400/5 hover:bg-cyan-400/10 text-cyan-300 transition text-sm"
                   >
                     <Download size={15} />
-                    Download PNG
+                    PNG
                   </button>
 
                   <button
                     onClick={() => handleDownload('svg')}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-purple-400/10 border border-purple-400/20 text-purple-200 hover:bg-purple-400/20 hover:border-purple-400/50 transition-all text-sm font-medium"
+                    className="flex items-center justify-center gap-2 py-3 rounded-xl border border-purple-400/20 bg-purple-400/5 hover:bg-purple-400/10 text-purple-300 transition text-sm"
                   >
                     <Download size={15} />
-                    Download SVG
+                    SVG
                   </button>
                 </div>
               </div>
 
-              {/* Dynamic link */}
+              {/* Dynamic Link */}
               {qr.mode === 'dynamic' && (
-                <div className="bg-white/[0.03] backdrop-blur-xl border border-cyan-400/20 rounded-2xl p-5">
-                  <h3 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
-                    <Zap size={15} className="text-cyan-300" />
+                <div className="rounded-2xl border border-cyan-400/20 bg-white/[0.03] backdrop-blur-xl p-5">
+                  <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <ExternalLink size={15} className="text-cyan-400" />
                     Redirect Link
                   </h3>
 
-                  <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl p-3">
-                    <code className="flex-1 text-xs text-cyan-300 font-mono truncate">
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 min-w-0 text-xs font-mono text-cyan-300 bg-black/40 rounded-lg p-3 truncate">
                       {API_BASE_URL}/r/{qr.short_code}
                     </code>
 
                     <button
                       onClick={copyLink}
-                      title="Copy link"
-                      className="p-2 rounded-lg hover:bg-cyan-400/10 text-slate-400 hover:text-cyan-300 transition-all"
+                      className="p-3 rounded-lg border border-white/10 hover:border-cyan-400/30 hover:bg-cyan-400/10 transition"
                     >
-                      {copied
-                        ? <Check size={16} className="text-green-400" />
-                        : <Copy size={16} />}
+                      {copied ? (
+                        <Check size={16} className="text-emerald-400" />
+                      ) : (
+                        <Copy size={16} className="text-cyan-400" />
+                      )}
                     </button>
                   </div>
 
                   {copied && (
-                    <p className="text-green-400 text-xs mt-2">
-                      Link copied successfully!
+                    <p className="text-emerald-400 text-xs mt-2">
+                      Link copied successfully
                     </p>
                   )}
                 </div>
               )}
 
-              {/* Actions */}
-              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 space-y-3">
-                <h3 className="text-white font-semibold text-sm mb-3">
-                  QR Controls
-                </h3>
-
+              {/* Controls */}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-5 space-y-3">
                 {qr.mode === 'dynamic' && (
                   <button
                     onClick={toggleActive}
-                    disabled={actionLoading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 transition-all text-sm disabled:opacity-50"
+                    className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border transition text-sm ${
+                      qr.is_active
+                        ? 'border-emerald-400/20 bg-emerald-400/5 text-emerald-300 hover:bg-red-400/10 hover:text-red-300'
+                        : 'border-red-400/20 bg-red-400/5 text-red-300 hover:bg-emerald-400/10 hover:text-emerald-300'
+                    }`}
                   >
                     <Circle
                       size={12}
-                      className={
-                        qr.is_active
-                          ? 'text-green-400 fill-green-400'
-                          : 'text-red-400 fill-red-400'
-                      }
+                      className={qr.is_active ? 'fill-emerald-400' : 'fill-red-400'}
                     />
-                    {qr.is_active
-                      ? 'Active — Disable QR'
-                      : 'Disabled — Enable QR'}
+                    {qr.is_active ? 'Disable QR Code' : 'Enable QR Code'}
                   </button>
                 )}
 
                 <button
                   onClick={handleDelete}
-                  disabled={actionLoading}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-red-500/5 border border-red-500/20 text-red-300 hover:bg-red-500/15 transition-all text-sm disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-400/20 bg-red-400/5 text-red-300 hover:bg-red-400/10 transition text-sm"
                 >
                   <Trash2 size={15} />
                   Delete QR Code
@@ -348,10 +329,10 @@ export default function QrDetail() {
               </div>
             </div>
 
-            {/* Right panel */}
+            {/* Right */}
             <div className="space-y-6">
 
-              {/* Stats */}
+              {/* Analytics */}
               {qr.mode === 'dynamic' && analytics ? (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -360,13 +341,11 @@ export default function QrDetail() {
                       value={analytics.totalScans}
                       icon={<Activity size={17} />}
                     />
-
                     <Stat
                       label="DEVICES"
                       value={analytics.scansByDevice.length}
-                      icon={<Sparkles size={17} />}
+                      icon={<Shield size={17} />}
                     />
-
                     <Stat
                       label="BROWSERS"
                       value={analytics.scansByBrowser.length}
@@ -375,35 +354,37 @@ export default function QrDetail() {
                   </div>
 
                   {/* Chart */}
-                  <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                    <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+                  <div className="rounded-3xl border border-cyan-400/10 bg-white/[0.03] backdrop-blur-xl p-6">
+                    <div className="flex items-center justify-between mb-6">
                       <div>
-                        <h3 className="text-white font-semibold">
-                          Scan Analytics
+                        <h3 className="font-semibold text-lg">
+                          Scan Activity
                         </h3>
-                        <p className="text-slate-500 text-xs mt-1">
-                          Scan activity over time
+                        <p className="text-xs text-slate-400 mt-1">
+                          QR scan history
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs text-cyan-300">
-                        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                      <div className="px-3 py-1 rounded-lg bg-cyan-400/5 border border-cyan-400/20 text-xs text-cyan-300 font-mono">
                         ANALYTICS
                       </div>
                     </div>
 
                     {analytics.scansByDay.length === 0 ? (
                       <div className="py-16 text-center">
-                        <Activity size={35} className="mx-auto text-slate-600 mb-3" />
+                        <Activity
+                          size={35}
+                          className="text-slate-600 mx-auto mb-3"
+                        />
                         <p className="text-slate-400 text-sm">
-                          No scans recorded yet.
+                          No scan data yet
                         </p>
-                        <p className="text-slate-600 text-xs mt-2">
-                          Share your QR code to begin collecting analytics.
+                        <p className="text-slate-500 text-xs mt-2">
+                          Share your QR to collect activity
                         </p>
                       </div>
                     ) : (
-                      <ResponsiveContainer width="100%" height={260}>
+                      <ResponsiveContainer width="100%" height={280}>
                         <AreaChart data={analytics.scansByDay}>
                           <defs>
                             <linearGradient
@@ -415,33 +396,33 @@ export default function QrDetail() {
                             >
                               <stop
                                 offset="0%"
-                                stopColor="#22d3ee"
-                                stopOpacity={0.4}
+                                stopColor="#00D9C0"
+                                stopOpacity={0.5}
                               />
                               <stop
                                 offset="100%"
-                                stopColor="#22d3ee"
+                                stopColor="#00D9C0"
                                 stopOpacity={0}
                               />
                             </linearGradient>
                           </defs>
 
                           <CartesianGrid
-                            stroke="#1e293b"
-                            vertical={false}
+                            stroke="#263245"
                             strokeDasharray="3 3"
+                            vertical={false}
                           />
 
                           <XAxis
                             dataKey="day"
-                            stroke="#64748b"
+                            stroke="#94a3b8"
                             fontSize={11}
                             tickLine={false}
                             axisLine={false}
                           />
 
                           <YAxis
-                            stroke="#64748b"
+                            stroke="#94a3b8"
                             fontSize={11}
                             tickLine={false}
                             axisLine={false}
@@ -450,18 +431,17 @@ export default function QrDetail() {
 
                           <Tooltip
                             contentStyle={{
-                              background: '#0f172a',
-                              border: '1px solid #164e63',
+                              background: '#0d1422',
+                              border: '1px solid #1e3a50',
                               borderRadius: 12,
-                              color: '#fff',
-                              fontSize: 12
+                              color: '#fff'
                             }}
                           />
 
                           <Area
                             type="monotone"
                             dataKey="count"
-                            stroke="#22d3ee"
+                            stroke="#00D9C0"
                             strokeWidth={3}
                             fill="url(#scanGradient)"
                           />
@@ -470,35 +450,28 @@ export default function QrDetail() {
                     )}
                   </div>
 
-                  {/* Recent scans */}
-                  {analytics.recentScans?.length > 0 && (
-                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                      <h3 className="text-white font-semibold mb-5 flex items-center gap-2">
-                        <Activity size={16} className="text-cyan-300" />
-                        Recent Scans
+                  {/* Recent Scans */}
+                  {analytics.recentScans.length > 0 && (
+                    <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6">
+                      <h3 className="font-semibold mb-5 flex items-center gap-2">
+                        <Activity size={16} className="text-cyan-400" />
+                        Recent Activity
                       </h3>
 
                       <div className="space-y-3">
                         {analytics.recentScans.map((s, i) => (
                           <div
                             key={i}
-                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-black/20 border border-white/5 hover:border-cyan-400/20 transition-all"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-xl bg-black/20 border border-white/5"
                           >
                             <div>
-                              <p className="text-slate-300 text-xs font-medium">
+                              <p className="text-sm text-white">
                                 {new Date(s.scanned_at).toLocaleString()}
                               </p>
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
-                              {[s.device_type, s.browser, s.os].map((item, j) => (
-                                <span
-                                  key={j}
-                                  className="text-[10px] font-mono px-2 py-1 rounded-lg bg-cyan-400/5 border border-cyan-400/10 text-cyan-200"
-                                >
-                                  {item}
-                                </span>
-                              ))}
+                            <div className="text-xs font-mono text-slate-400">
+                              {s.device_type} · {s.browser} · {s.os}
                             </div>
                           </div>
                         ))}
@@ -507,39 +480,24 @@ export default function QrDetail() {
                   )}
                 </>
               ) : (
-                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <ShieldCheck size={20} className="text-purple-300" />
-                    <h3 className="text-white font-semibold">
-                      Static QR Code
-                    </h3>
-                  </div>
-
-                  <p className="text-slate-400 text-sm leading-6">
-                    This QR code contains fixed content. Static QR codes do
-                    not track scans or allow destination changes. Create a
-                    dynamic QR code to enable scan analytics and flexible
-                    redirection.
+                <div className="rounded-3xl border border-purple-400/20 bg-purple-400/5 p-6">
+                  <h3 className="font-semibold mb-2 text-purple-300">
+                    Static QR Mode
+                  </h3>
+                  <p className="text-sm text-slate-400 leading-6">
+                    This QR code contains its destination directly inside the
+                    image. Scan analytics and destination editing through a
+                    redirect are not available for static QR codes.
                   </p>
                 </div>
               )}
 
               {/* Content */}
-              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-9 h-9 rounded-xl bg-purple-400/10 border border-purple-400/20 flex items-center justify-center">
-                    <QrCode size={17} className="text-purple-300" />
-                  </div>
-
-                  <div>
-                    <h3 className="text-white font-semibold">
-                      QR Content
-                    </h3>
-                    <p className="text-slate-500 text-xs">
-                      Encoded destination information
-                    </p>
-                  </div>
-                </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6">
+                <h3 className="font-semibold mb-5 flex items-center gap-2">
+                  <Zap size={16} className="text-cyan-400" />
+                  QR Content
+                </h3>
 
                 <div className="space-y-3">
                   {Object.entries(qr.target_data || {}).map(([k, v]) => (
@@ -547,14 +505,12 @@ export default function QrDetail() {
                       key={k}
                       className="flex flex-col sm:flex-row sm:gap-4 p-3 rounded-xl bg-black/20 border border-white/5"
                     >
-                      <span className="text-slate-500 text-xs uppercase tracking-wider sm:w-32 shrink-0">
-                        {k}
+                      <span className="text-xs uppercase tracking-wider text-slate-400 sm:w-32 shrink-0">
+                        {k.replace(/_/g, ' ')}
                       </span>
 
-                      <span className="text-slate-200 text-sm break-all">
-                        {typeof v === 'object'
-                          ? JSON.stringify(v)
-                          : String(v)}
+                      <span className="text-sm text-white break-all">
+                        {String(v)}
                       </span>
                     </div>
                   ))}
@@ -562,9 +518,10 @@ export default function QrDetail() {
               </div>
 
               {/* Footer */}
-              <div className="text-center py-5">
-                <p className="text-slate-600 text-xs font-mono">
-                  UNIFIED QR PLATFORM · INTELLIGENCE PANEL
+              <div className="rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.02] p-4 flex items-center gap-3">
+                <Activity size={16} className="text-cyan-400" />
+                <p className="text-xs text-slate-400">
+                  Unified QR Platform · QR management interface
                 </p>
               </div>
             </div>
@@ -577,23 +534,18 @@ export default function QrDetail() {
 
 function Stat({ label, value, icon }) {
   return (
-    <div className="group bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-cyan-400/30 hover:bg-cyan-400/[0.03] transition-all">
+    <div className="relative overflow-hidden rounded-2xl border border-cyan-400/10 bg-white/[0.03] backdrop-blur-xl p-5 hover:border-cyan-400/30 transition">
+      <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-400/5 blur-2xl rounded-full" />
+
       <div className="flex items-center justify-between mb-4">
-        <p className="text-slate-500 text-xs font-mono tracking-wider">
+        <p className="text-xs font-mono text-slate-400 tracking-widest">
           {label}
         </p>
-
-        <div className="text-cyan-300 p-2 rounded-lg bg-cyan-400/10 border border-cyan-400/10">
-          {icon}
-        </div>
+        <div className="text-cyan-400">{icon}</div>
       </div>
 
-      <div className="text-3xl font-bold text-white tracking-tight">
+      <div className="text-3xl font-bold text-white">
         {value}
-      </div>
-
-      <div className="mt-3 h-1 rounded-full bg-slate-800 overflow-hidden">
-        <div className="h-full w-1/2 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full group-hover:w-full transition-all duration-700" />
       </div>
     </div>
   );
