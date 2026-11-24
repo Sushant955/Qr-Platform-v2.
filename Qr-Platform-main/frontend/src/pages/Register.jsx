@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ScanLine } from 'lucide-react';
@@ -51,7 +52,7 @@ export default function Register() {
                 required value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="w-full bg-panel2 border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-signal transition-colors"
-                placeholder="Shiva Sai"
+                placeholder="Sushanth"
               />
             </div>
             <div>
