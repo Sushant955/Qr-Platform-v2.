@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ScanLine, Eye, EyeOff, ArrowRight } from 'lucide-react';
@@ -29,17 +28,27 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#050816] text-white flex items-center justify-center px-4">
-
-      {/* Background */}
-      <div className="absolute inset-0 pointer-events-none"
+    <div
+      className="min-h-screen relative overflow-hidden bg-[#050816] text-white flex items-center justify-center px-4"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(5,8,22,0.65), rgba(5,8,22,0.85)), url('/auth-bg.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* Grid */}
+      <div
+        className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
             'linear-gradient(rgba(0,220,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,220,255,0.04) 1px, transparent 1px)',
-          backgroundSize: '40px 40px'
+          backgroundSize: '40px 40px',
         }}
       />
 
+      {/* Glow */}
       <div className="absolute w-80 h-80 bg-cyan-500/10 blur-[120px] rounded-full top-0 left-0" />
       <div className="absolute w-80 h-80 bg-purple-500/10 blur-[120px] rounded-full bottom-0 right-0" />
 
@@ -56,14 +65,14 @@ export default function Login() {
             <h1 className="text-2xl font-bold tracking-wide">
               UNIFIED <span className="text-cyan-400">QR</span>
             </h1>
-            <p className="text-[10px] tracking-[4px] text-gray-500">
+            <p className="text-[10px] tracking-[4px] text-gray-400">
               DIGITAL INTELLIGENCE
             </p>
           </div>
         </div>
 
         {/* Card */}
-        <div className="bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl shadow-cyan-950/30">
+        <div className="bg-[#080e1b]/75 backdrop-blur-2xl border border-cyan-400/20 rounded-3xl p-8 shadow-2xl shadow-cyan-950/40">
 
           <div className="mb-7">
             <p className="text-cyan-400 text-xs tracking-[3px] mb-3">
@@ -100,7 +109,7 @@ export default function Login() {
                 onChange={(e) =>
                   setForm({ ...form, email: e.target.value })
                 }
-                className="w-full bg-[#0b1020] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 transition-all"
+                className="w-full bg-[#0b1020]/90 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 transition-all"
                 placeholder="you@example.com"
               />
             </div>
@@ -119,7 +128,7 @@ export default function Login() {
                   onChange={(e) =>
                     setForm({ ...form, password: e.target.value })
                   }
-                  className="w-full bg-[#0b1020] border border-white/10 rounded-xl px-4 py-3 pr-12 text-white outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 transition-all"
+                  className="w-full bg-[#0b1020]/90 border border-white/10 rounded-xl px-4 py-3 pr-12 text-white outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 transition-all"
                   placeholder="Enter your password"
                 />
 
@@ -148,7 +157,7 @@ export default function Login() {
 
           <div className="flex items-center gap-3 my-6">
             <div className="h-px flex-1 bg-white/10" />
-            <span className="text-gray-600 text-xs">SECURE ACCESS</span>
+            <span className="text-gray-400 text-xs">SECURE ACCESS</span>
             <div className="h-px flex-1 bg-white/10" />
           </div>
 
@@ -165,7 +174,7 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-center gap-2 mt-6 text-xs text-gray-600">
+        <div className="flex items-center justify-center gap-2 mt-6 text-xs text-gray-400">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
           SYSTEM ONLINE
           <span className="mx-2">|</span>
