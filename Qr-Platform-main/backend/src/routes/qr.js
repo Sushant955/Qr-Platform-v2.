@@ -1,315 +1,131 @@
-const express = require('express');
-const QRCode = require('qrcode');
-const { v4: uuidv4 } = require('uuid');
-const { nanoid } = require('nanoid');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const db = require('../db/init');
-const { authRequired } = require('../middleware/auth');
-const { buildEncodedString } = require('../utils/qrEncoder');
+                          />
 
-const router = express.Router();
+                          <YAxis
+                            stroke="#94a3b8"
+                            fontSize={11}
+                            tickLine={false}
+                            axisLine={false}
+                            allowDecimals={false}
+                          />
 
-const uploadDir = process.env.UPLOAD_DIR || './src/uploads';
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `file-${req.userId}-${Date.now()}${ext}`);
-  },
-});
-const allowedMime = new Set(['image/png','image/jpeg','image/webp','image/gif','application/pdf','video/mp4','video/webm']);
-const upload = multer({
-  storage,
-  limits: { fileSize: (Number(process.env.MAX_FILE_SIZE_MB) || 15) * 1024 * 1024 },
-  fileFilter: (req, file, cb) => cb(null, allowedMime.has(file.mimetype)),
-});
+                          <Tooltip
+                            contentStyle={{
+                              background: '#0d1422',
+                              border: '1px solid #1e3a50',
+                              borderRadius: 12,
+                              color: '#fff'
+                            }}
+                          />
 
-function validateQrPayload(type, data) {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) throw Object.assign(new Error('target_data must be an object'), { status: 400 });
-  const validUrl = (v) => { try { const u = new URL(v); return ['http:', 'https:'].includes(u.protocol); } catch { return false; } };
-  const required = (key) => typeof data[key] === 'string' && data[key].trim().length > 0;
-  if (type === 'url' && (!required('url') || !validUrl(data.url))) throw Object.assign(new Error('A valid http/https URL is required'), { status: 400 });
-  if (type === 'multilink') {
-    if (!Array.isArray(data.links) && !Array.isArray(data.items)) { /* links are supplied separately in request */ }
-  }
-  if (type === 'wifi' && !required('ssid')) throw Object.assign(new Error('Wi-Fi SSID is required'), { status: 400 });
-  if (type === 'email' && !required('to')) throw Object.assign(new Error('Email recipient is required'), { status: 400 });
-  if (type === 'whatsapp' && !required('phone')) throw Object.assign(new Error('WhatsApp phone number is required'), { status: 400 });
-  if (type === 'geo' && !data.query && (!Number.isFinite(Number(data.lat)) || !Number.isFinite(Number(data.lng)) || Number(data.lat) < -90 || Number(data.lat) > 90 || Number(data.lng) < -180 || Number(data.lng) > 180)) throw Object.assign(new Error('Valid latitude and longitude or location query are required'), { status: 400 });
-  if (type === 'multilink') {
-    const arr = data.links || data.items;
-    if (arr && (!Array.isArray(arr) || arr.length > 50 || arr.some(x => !x || typeof x.url !== 'string' || !validUrl(x.url) || typeof x.label !== 'string' || !x.label.trim()))) throw Object.assign(new Error('Multi-link entries must contain a label and valid http/https URL (max 50)'), { status: 400 });
-  }
-  if (!['url','text','wifi','vcard','whatsapp','phone','email','sms','geo','upi','file','image','video','pdf','multilink'].includes(type)) throw Object.assign(new Error('Unsupported QR type'), { status: 400 });
+                          <Area
+                            type="monotone"
+                            dataKey="count"
+                            stroke="#00D9C0"
+                            strokeWidth={3}
+                            fill="url(#scanGradient)"
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+
+                  {/* Recent Scans */}
+                  {analytics.recentScans.length > 0 && (
+                    <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6">
+                      <h3 className="font-semibold mb-5 flex items-center gap-2">
+                        <Activity size={16} className="text-cyan-400" />
+                        Recent Activity
+                      </h3>
+
+                      <div className="space-y-3">
+                        {analytics.recentScans.map((s, i) => (
+                          <div
+                            key={i}
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-xl bg-black/20 border border-white/5"
+                          >
+                            <div>
+                              <p className="text-sm text-white">
+                                {new Date(s.scanned_at).toLocaleString()}
+                              </p>
+                            </div>
+
+                            <div className="text-xs font-mono text-slate-400">
+                              {s.device_type} · {s.browser} · {s.os}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="rounded-3xl border border-purple-400/20 bg-purple-400/5 p-6">
+                  <h3 className="font-semibold mb-2 text-purple-300">
+                    Static QR Mode
+                  </h3>
+                  <p className="text-sm text-slate-400 leading-6">
+                    This QR code contains its destination directly inside the
+                    image. Scan analytics and destination editing through a
+                    redirect are not available for static QR codes.
+                  </p>
+                </div>
+              )}
+
+              {/* Content */}
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6">
+                <h3 className="font-semibold mb-5 flex items-center gap-2">
+                  <Zap size={16} className="text-cyan-400" />
+                  QR Content
+                </h3>
+
+                <div className="space-y-3">
+                  {Object.entries(qr.target_data || {}).map(([k, v]) => (
+                    <div
+                      key={k}
+                      className="flex flex-col sm:flex-row sm:gap-4 p-3 rounded-xl bg-black/20 border border-white/5"
+                    >
+                      <span className="text-xs uppercase tracking-wider text-slate-400 sm:w-32 shrink-0">
+                        {k.replace(/_/g, ' ')}
+                      </span>
+
+                      <span className="text-sm text-white break-all">
+                        {String(v)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.02] p-4 flex items-center gap-3">
+                <Activity size={16} className="text-cyan-400" />
+                <p className="text-xs text-slate-400">
+                  Unified QR Platform · QR management interface
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
 }
 
+function Stat({ label, value, icon }) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-cyan-400/10 bg-white/[0.03] backdrop-blur-xl p-5 hover:border-cyan-400/30 transition">
+      <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-400/5 blur-2xl rounded-full" />
 
-function serializeQr(row) {
-  return {
-    ...row,
-    target_data: JSON.parse(row.target_data),
-    is_active: !!row.is_active,
-    tags: row.tags ? row.tags.split(',').filter(Boolean) : [],
-  };
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs font-mono text-slate-400 tracking-widest">
+          {label}
+        </p>
+        <div className="text-cyan-400">{icon}</div>
+      </div>
+
+      <div className="text-3xl font-bold text-white">
+        {value}
+      </div>
+    </div>
+  );
 }
-
-function getEncodedContent(row) {
-  const data = JSON.parse(row.target_data);
-  if (row.mode === 'dynamic') {
-    return `${process.env.BASE_URL}/r/${row.short_code}`;
-  }
-  return buildEncodedString(row.type, data);
-}
-
-// ---- File upload for file/image/video/pdf QR types ----
-router.post('/upload', authRequired, upload.single('file'), (req, res, next) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-    const fileUrl = `${process.env.BASE_URL}/uploads/${req.file.filename}`;
-    res.json({ fileUrl, originalName: req.file.originalname, size: req.file.size });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// ---- Create QR ----
-router.post('/', authRequired, (req, res, next) => {
-  try {
-    const {
-      title, type, mode = 'static', target_data,
-      fg_color = '#000000', bg_color = '#FFFFFF', size = 300,
-      folder = 'default', tags = [], links = [],
-    } = req.body;
-
-    if (!title || !type || !target_data) {
-      return res.status(400).json({ error: 'title, type and target_data are required' });
-    }
-
-    validateQrPayload(type, target_data);
-    if (mode !== 'static' && mode !== 'dynamic') return res.status(400).json({ error: 'mode must be static or dynamic' });
-    if (!/^#[0-9a-fA-F]{6}$/.test(fg_color) || !/^#[0-9a-fA-F]{6}$/.test(bg_color)) return res.status(400).json({ error: 'Colors must be 6-digit hex values' });
-    if (!Number.isInteger(Number(size)) || Number(size) < 128 || Number(size) > 1024) return res.status(400).json({ error: 'QR size must be between 128 and 1024 pixels' });
-    if (type !== 'multilink') buildEncodedString(type, target_data);
-    if (type === 'multilink' && (!Array.isArray(links) || links.length < 1 || links.length > 50 || links.some(l => !l || typeof l.label !== 'string' || !l.label.trim() || typeof l.url !== 'string' || !/^https?:\/\//i.test(l.url)))) return res.status(400).json({ error: 'Multi-link requires 1-50 entries with labels and http/https URLs' });
-
-    const id = uuidv4();
-    const short_code = mode === 'dynamic' ? nanoid(8) : null;
-
-    db.prepare(`
-      INSERT INTO qr_codes (id, user_id, title, type, mode, short_code, target_data, fg_color, bg_color, size, folder, tags)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id, req.userId, title, type, mode, short_code,
-      JSON.stringify(target_data), fg_color, bg_color, size, folder,
-      Array.isArray(tags) ? tags.join(',') : tags
-    );
-
-    if (type === 'multilink' && Array.isArray(links)) {
-      const stmt = db.prepare(`INSERT INTO qr_links (id, qr_id, label, url, order_index) VALUES (?, ?, ?, ?, ?)`);
-      links.forEach((l, i) => stmt.run(uuidv4(), id, l.label, l.url, i));
-    }
-
-    const row = db.prepare('SELECT * FROM qr_codes WHERE id = ?').get(id);
-    res.status(201).json({ qr: serializeQr(row) });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// ---- List / search / filter ----
-router.get('/', authRequired, (req, res, next) => {
-  try {
-    const { search, type, mode, folder, sort = 'created_desc' } = req.query;
-
-    let query = 'SELECT * FROM qr_codes WHERE user_id = ?';
-    const params = [req.userId];
-
-    if (search) {
-      query += ' AND (title LIKE ? OR tags LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`);
-    }
-    if (type) {
-      query += ' AND type = ?';
-      params.push(type);
-    }
-    if (mode) {
-      query += ' AND mode = ?';
-      params.push(mode);
-    }
-    if (folder) {
-      query += ' AND folder = ?';
-      params.push(folder);
-    }
-
-    const sortMap = {
-      created_desc: 'created_at DESC',
-      created_asc: 'created_at ASC',
-      title_asc: 'title ASC',
-      title_desc: 'title DESC',
-    };
-    query += ` ORDER BY ${sortMap[sort] || sortMap.created_desc}`;
-
-    const rows = db.prepare(query).all(...params);
-
-    // attach scan counts
-    const withCounts = rows.map((row) => {
-      const { count } = db.prepare('SELECT COUNT(*) as count FROM scans WHERE qr_id = ?').get(row.id);
-      return { ...serializeQr(row), scan_count: count };
-    });
-
-    res.json({ qrCodes: withCounts, total: withCounts.length });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// ---- Get single QR ----
-router.get('/:id', authRequired, (req, res, next) => {
-  try {
-    const row = db.prepare('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
-    if (!row) return res.status(404).json({ error: 'QR code not found' });
-
-    const links = row.type === 'multilink'
-      ? db.prepare('SELECT * FROM qr_links WHERE qr_id = ? ORDER BY order_index').all(row.id)
-      : [];
-
-    res.json({ qr: serializeQr(row), links });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// ---- Update QR ----
-router.put('/:id', authRequired, (req, res, next) => {
-  try {
-    const existing = db.prepare('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
-    if (!existing) return res.status(404).json({ error: 'QR code not found' });
-
-    const {
-      title, target_data, fg_color, bg_color, size,
-      folder, tags, is_active, links,
-    } = req.body;
-
-    if (target_data) { validateQrPayload(existing.type, target_data); if (existing.type !== 'multilink') buildEncodedString(existing.type, target_data); }
-
-    db.prepare(`
-      UPDATE qr_codes SET
-        title = COALESCE(?, title),
-        target_data = COALESCE(?, target_data),
-        fg_color = COALESCE(?, fg_color),
-        bg_color = COALESCE(?, bg_color),
-        size = COALESCE(?, size),
-        folder = COALESCE(?, folder),
-        tags = COALESCE(?, tags),
-        is_active = COALESCE(?, is_active),
-        updated_at = datetime('now')
-      WHERE id = ?
-    `).run(
-      title,
-      target_data ? JSON.stringify(target_data) : null,
-      fg_color, bg_color, size, folder,
-      tags ? (Array.isArray(tags) ? tags.join(',') : tags) : null,
-      typeof is_active === 'boolean' ? (is_active ? 1 : 0) : null,
-      req.params.id
-    );
-
-    if (existing.type === 'multilink' && Array.isArray(links)) {
-      db.prepare('DELETE FROM qr_links WHERE qr_id = ?').run(req.params.id);
-      const stmt = db.prepare(`INSERT INTO qr_links (id, qr_id, label, url, order_index) VALUES (?, ?, ?, ?, ?)`);
-      links.forEach((l, i) => stmt.run(uuidv4(), req.params.id, l.label, l.url, i));
-    }
-
-    const row = db.prepare('SELECT * FROM qr_codes WHERE id = ?').get(req.params.id);
-    res.json({ qr: serializeQr(row) });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// ---- Delete QR ----
-router.delete('/:id', authRequired, (req, res, next) => {
-  try {
-    const result = db.prepare('DELETE FROM qr_codes WHERE id = ? AND user_id = ?').run(req.params.id, req.userId);
-    if (result.changes === 0) return res.status(404).json({ error: 'QR code not found' });
-    res.json({ success: true });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// ---- Generate QR image: PNG / SVG / dataURL ----
-router.get('/:id/image', authRequired, async (req, res, next) => {
-  try {
-    const row = db.prepare('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
-    if (!row) return res.status(404).json({ error: 'QR code not found' });
-
-    const format = (req.query.format || 'png').toLowerCase();
-    const content = getEncodedContent(row);
-
-    const options = {
-      width: row.size || 300,
-      margin: 2,
-      color: { dark: row.fg_color || '#000000', light: row.bg_color || '#FFFFFF' },
-    };
-
-    if (format === 'svg') {
-      const svg = await QRCode.toString(content, { ...options, type: 'svg' });
-      res.setHeader('Content-Type', 'image/svg+xml');
-      res.setHeader('Content-Disposition', `attachment; filename="${row.title}.svg"`);
-      return res.send(svg);
-    }
-
-    if (format === 'dataurl') {
-      const dataUrl = await QRCode.toDataURL(content, options);
-      return res.json({ dataUrl });
-    }
-
-    // default PNG
-    const buffer = await QRCode.toBuffer(content, options);
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Content-Disposition', `attachment; filename="${row.title}.png"`);
-    res.send(buffer);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// ---- Analytics ----
-router.get('/:id/analytics', authRequired, (req, res, next) => {
-  try {
-    const row = db.prepare('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
-    if (!row) return res.status(404).json({ error: 'QR code not found' });
-
-    const totalScans = db.prepare('SELECT COUNT(*) as count FROM scans WHERE qr_id = ?').get(row.id).count;
-
-    const scansByDay = db.prepare(`
-      SELECT date(scanned_at) as day, COUNT(*) as count
-      FROM scans WHERE qr_id = ?
-      GROUP BY day ORDER BY day ASC LIMIT 30
-    `).all(row.id);
-
-    const scansByDevice = db.prepare(`
-      SELECT device_type, COUNT(*) as count FROM scans
-      WHERE qr_id = ? GROUP BY device_type
-    `).all(row.id);
-
-    const scansByBrowser = db.prepare(`
-      SELECT browser, COUNT(*) as count FROM scans
-      WHERE qr_id = ? GROUP BY browser
-    `).all(row.id);
-
-    const recentScans = db.prepare(`
-      SELECT scanned_at, device_type, browser, os, referrer
-      FROM scans WHERE qr_id = ? ORDER BY scanned_at DESC LIMIT 20
-    `).all(row.id);
-
-    res.json({ totalScans, scansByDay, scansByDevice, scansByBrowser, recentScans });
-  } catch (err) {
-    next(err);
-  }
-});
-
-module.exports = router;
